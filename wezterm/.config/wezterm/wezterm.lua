@@ -54,8 +54,8 @@ local t = themes[THEME]
 config.font = wezterm.font("JetBrainsMono Nerd Font")
 config.font_size = 17
 config.color_scheme = t.color_scheme
-config.window_background_opacity = 0.7
-config.macos_window_background_blur = 50
+config.window_background_opacity = 0.95
+config.macos_window_background_blur = 10
 config.window_padding = { left = 18, right = 15, top = 20, bottom = 5 }
 
 config.max_fps = 120
@@ -75,6 +75,72 @@ config.harfbuzz_features = { "calt=0" }
 config.colors = {
   background = t.background,
   tab_bar = t.tab_bar,
+}
+
+local act = wezterm.action
+
+---------------------------------------------------------------
+-- keybindings (Cmd = primary, Cmd+Ctrl = secondary)
+---------------------------------------------------------------
+config.leader = { key = "Space", mods = "SUPER|OPT", timeout_milliseconds = 1000 }
+
+config.keys = {
+  -- panes: split
+  { key = "\\", mods = "SUPER",      action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+  { key = "\\", mods = "SUPER|OPT", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+
+  -- panes: navigate (vim-style)
+  { key = "h", mods = "SUPER|OPT", action = act.ActivatePaneDirection("Left") },
+  { key = "j", mods = "SUPER|OPT", action = act.ActivatePaneDirection("Down") },
+  { key = "k", mods = "SUPER|OPT", action = act.ActivatePaneDirection("Up") },
+  { key = "l", mods = "SUPER|OPT", action = act.ActivatePaneDirection("Right") },
+
+  -- panes: zoom + close
+  { key = "Enter", mods = "SUPER",      action = act.TogglePaneZoomState },
+  { key = "x",     mods = "SUPER",      action = act.CloseCurrentPane({ confirm = false }) },
+
+  -- panes: resize (leader → h/j/k/l)
+  { key = "p", mods = "LEADER", action = act.ActivateKeyTable({ name = "resize_pane", one_shot = false, timeout_milliseconds = 1000 }) },
+
+  -- panes: swap
+  { key = "s", mods = "SUPER|OPT", action = act.PaneSelect({ alphabet = "1234567890", mode = "SwapWithActiveKeepFocus" }) },
+
+  -- tabs: spawn + close
+  { key = "t", mods = "SUPER",      action = act.SpawnTab("DefaultDomain") },
+  { key = "x", mods = "SUPER|OPT", action = act.CloseCurrentTab({ confirm = false }) },
+
+  -- tabs: navigate
+  { key = "[", mods = "SUPER", action = act.ActivateTabRelative(-1) },
+  { key = "]", mods = "SUPER", action = act.ActivateTabRelative(1) },
+
+  -- tabs: move
+  { key = "[", mods = "SUPER|OPT", action = act.MoveTabRelative(-1) },
+  { key = "]", mods = "SUPER|OPT", action = act.MoveTabRelative(1) },
+
+  -- scroll
+  { key = "u", mods = "SUPER", action = act.ScrollByLine(-5) },
+  { key = "d", mods = "SUPER", action = act.ScrollByLine(5) },
+
+  -- misc
+  { key = "f",     mods = "SUPER",  action = act.Search({ CaseInSensitiveString = "" }) },
+  { key = "F11",   mods = "NONE",   action = act.ToggleFullScreen },
+  { key = "F12",   mods = "NONE",   action = act.ShowDebugOverlay },
+  { key = "n",     mods = "SUPER",  action = act.SpawnWindow },
+}
+
+config.key_tables = {
+  resize_pane = {
+    { key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
+    { key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
+    { key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
+    { key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
+    { key = "Escape", action = "PopKeyTable" },
+    { key = "q",      action = "PopKeyTable" },
+  },
+}
+
+config.mouse_bindings = {
+  { event = { Up = { streak = 1, button = "Left" } }, mods = "CTRL", action = act.OpenLinkAtMouseCursor },
 }
 
 -- wezterm-tabs plugin
