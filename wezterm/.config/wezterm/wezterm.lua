@@ -33,13 +33,13 @@ local themes = {
   },
   ["catppuccin-mocha"] = {
     color_scheme = "Catppuccin Mocha",
-    background = "#11111A",
+    background = "#181825",
     tab_bar = {
       background = "#11111b",
       active_tab = { bg_color = "#cba6f7", fg_color = "#1e1e2e", intensity = "Bold" },
-      inactive_tab = { bg_color = "#181825", fg_color = "#6c7086" },
+      inactive_tab = { bg_color = "#1e1e2e", fg_color = "#9399b2" },
       inactive_tab_hover = { bg_color = "#313244", fg_color = "#f5c2e7", italic = true },
-      new_tab = { bg_color = "#181825", fg_color = "#6c7086" },
+      new_tab = { bg_color = "#1e1e2e", fg_color = "#9399b2" },
       new_tab_hover = { bg_color = "#313244", fg_color = "#94e2d5", italic = true },
     },
   },
@@ -52,9 +52,9 @@ local t = themes[THEME]
 ---------------------------------------------------------------
 -- font_dirs removed: wezterm searches all system font paths by default
 config.font = wezterm.font("JetBrainsMono Nerd Font")
-config.font_size = 17
+config.font_size = 16
 config.color_scheme = t.color_scheme
-config.window_background_opacity = 0.95
+config.window_background_opacity = 0.85
 config.macos_window_background_blur = 10
 config.window_padding = { left = 18, right = 15, top = 20, bottom = 5 }
 

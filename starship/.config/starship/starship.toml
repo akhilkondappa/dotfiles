@@ -57,7 +57,7 @@ disabled = true
 
 [character] 
 disabled = false
-success_symbol = "[❯ ](bold fg:green)"
+success_symbol = "[❯ ](bold fg:#C5A7F2)"
 error_symbol = "[✘ ](bold fg:red)"
 vimcmd_symbol = "[: ](bold fg:yellow)"
 
@@ -92,9 +92,9 @@ require_repo = true
 ignore_timeout = true
 
 [git_branch] 
-symbol = "[](base) "
-style = "fg:lavender bg:base"
-format =  "  [$symbol$branch]($style)[](base)"
+symbol = "[](surface0) "
+style = "fg:lavender bg:surface0"
+format =  "  [$symbol$branch]($style)[](surface0)"
 
 # [git_status] 
 # MINIMAL git status 
@@ -161,23 +161,22 @@ Redhat = "󱄛"
 RedHatEnterprise = "󱄛"
 
 [python]
-symbol = "[](base)🐍"
-style = "fg:green bg:base"
-format = '[$symbol ($version )(\($virtualenv\) )]($style)[](base) '
+symbol = "[](surface0)🐍"
+style = "fg:green bg:surface0"
+format = '[$symbol ($version )(\($virtualenv\) )]($style)[](surface0) '
 detect_extensions = ["py"]
 detect_files = ["requirements.txt", "pyproject.toml", "setup.py"]
 
 [kubernetes]
-symbol = "[](base)"
-style = "fg:teal bg:base"
-format = '[󱃾 $context\($namespace\)]($style)[](base)'
+symbol = "[](surface0)"
+style = "fg:teal bg:surface0"
+format = '$symbol[󱃾 $context\($namespace\)]($style)[](surface0)'
 disabled = false
 
 [aws]
-# symbol = ""
-symbol = "[](base)"
-style = "fg:peach bg:base"
-format = '[$symbol $profile]($style)[](base) '
+symbol = "[](surface0)"
+style = "fg:peach bg:surface0"
+format = '[$symbol $profile]($style)[](surface0) '
 
 # ── Palettes ─────────────────────────────────────────────────
 # Switch theme: palette = "catppuccin_mocha" | "rose_pine" | "dracula"
