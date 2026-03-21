@@ -12,7 +12,7 @@ fpath=(~/.zsh/completions $fpath)
 plugins=(
     git 
     ## with oh-my-zsh and not homebrew
-    # zsh-autosuggestions
+    zsh-autosuggestions
     zsh-syntax-highlighting
     zsh-system-clipboard
     # zsh-vi-mode
