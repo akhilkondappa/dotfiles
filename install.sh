@@ -54,7 +54,7 @@ brew install coreutils stow fzf bat fd zoxide lua ripgrep eza \
 
 # Casks
 echo "Installing casks..."
-brew install --cask wezterm
+brew install --cask wezterm@nightly
 brew install --cask font-hack-nerd-font
 brew install --cask font-jetbrains-mono-nerd-font
 

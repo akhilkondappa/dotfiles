@@ -103,11 +103,22 @@ alias gs="git status -s"
 alias gc='git commit -m'
 alias glog='git log --oneline --graph --all'
 alias gh-create='gh repo create --private --source=. --remote=origin && git push -u --all && gh browse'
+alias gcob="git checkout -b"
+alias glr="git pull --rebase"
+alias grmm="git rebase master"
+alias grmn="git rebase main"
 
 alias nvim-scratch="NVIM_APPNAME=nvim-scratch nvim"
 
 # lazygit
 alias lg="lazygit"
+
+#terraform
+alias tf="terraform"
+alias awsfind="source ~/scripts/awsfind"
+
+#kubenetes
+alias k="kubectl"
 # ---------------------------------------
 
 # brew installations (new mac systems brew path: opt/homebrew , not usr/local )
