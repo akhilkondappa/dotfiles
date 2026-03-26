@@ -58,9 +58,10 @@ config.window_background_opacity = 0.85
 config.macos_window_background_blur = 10
 config.window_padding = { left = 18, right = 15, top = 20, bottom = 5 }
 
-config.max_fps = 120
-config.animation_fps = 120
+config.max_fps = 60
+config.animation_fps = 60
 config.front_end = "WebGpu"
+config.webgpu_power_preference = "LowPower"
 config.prefer_egl = true
 
 config.enable_tab_bar = true
