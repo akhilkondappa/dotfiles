@@ -1,25 +1,17 @@
-#!/usr/bin/env bash
-
 #######################################
 # awsfind - Find and select AWS SSO profiles via fzf
 #
 # Usage:
 #   awsfind              # Browse all SSO profiles
 #   awsfind 978820379768 # Filter by account ID
-#
-# Outputs: assume <profile-name>
-# Also copies to clipboard via pbcopy (macOS)
 #######################################
 
-set -euo pipefail
+_awsfind() {
+    local aws_config="${HOME}/.aws/config"
+    local filter="${1:-}"
 
-readonly AWS_CONFIG="${HOME}/.aws/config"
-readonly FILTER="${1:-}"
-
-# Parse active (uncommented) SSO profiles from ~/.aws/config
-# Outputs: profile-name  (account-id)  role: role-name
-parse_profiles() {
-    awk '
+    local profiles
+    profiles=$(awk '
     /^[[:space:]]*\[profile / {
         gsub(/^\[profile |\]$/, "")
         profile = $0
@@ -34,24 +26,23 @@ parse_profiles() {
         printf "%s  (%s)  role: %s\n", profile, account, role
         profile = ""; account = ""; role = ""
     }
-    ' "$AWS_CONFIG"
+    ' "$aws_config")
+
+    if [[ -n "$filter" ]]; then
+        profiles=$(echo "$profiles" | grep "$filter" || true)
+    fi
+
+    if [[ -z "$profiles" ]]; then
+        echo "No profiles found" >&2
+        return 1
+    fi
+
+    local selected
+    selected=$(echo "$profiles" | fzf --height=40% --reverse --prompt="AWS Profile> " | awk '{print $1}')
+
+    if [[ -n "$selected" ]]; then
+        eval "assume ${selected}"
+    fi
 }
 
-profiles=$(parse_profiles)
-
-if [[ -n "$FILTER" ]]; then
-    profiles=$(echo "$profiles" | grep "$FILTER" || true)
-fi
-
-if [[ -z "$profiles" ]]; then
-    echo "No profiles found" >&2
-    exit 1
-fi
-
-selected=$(echo "$profiles" | fzf --height=40% --reverse --prompt="AWS Profile> " | awk '{print $1}')
-
-if [[ -n "$selected" ]]; then
-    cmd="assume ${selected}"
-    echo "$cmd"
-    echo -n "$cmd" | pbcopy
-fi
+_awsfind "$@"
