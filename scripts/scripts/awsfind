@@ -2,13 +2,25 @@
 # awsfind - Find and select AWS SSO profiles via fzf
 #
 # Usage:
-#   awsfind              # Browse all SSO profiles
+#   awsfind              # Assume role (terminal creds)
+#   awsfind -c           # Open AWS console in browser
 #   awsfind 978820379768 # Filter by account ID
+#   awsfind -c 978820379768 # Console + filter
 #######################################
 
 _awsfind() {
     local aws_config="${HOME}/.aws/config"
-    local filter="${1:-}"
+    local console_flag=""
+    local filter=""
+
+    # Parse args
+    for arg in "$@"; do
+        if [[ "$arg" == "-c" ]]; then
+            console_flag="-c"
+        else
+            filter="$arg"
+        fi
+    done
 
     local profiles
     profiles=$(awk '
@@ -41,7 +53,8 @@ _awsfind() {
     selected=$(echo "$profiles" | fzf --height=40% --reverse --prompt="AWS Profile> " | awk '{print $1}')
 
     if [[ -n "$selected" ]]; then
-        eval "assume ${selected}"
+        echo "→ assume ${console_flag} ${selected}"
+        eval "assume ${console_flag} ${selected}"
     fi
 }
 

@@ -1,0 +1,60 @@
+#######################################
+# repofind - Find and open git repos in browser via fzf
+#
+# Usage:
+#   repofind          # Browse all repos
+#   repofind shard    # Filter by keyword
+#   repofind --refresh # Force cache rebuild
+#######################################
+
+_repofind() {
+    local repo_root="${HOME}/Repo"
+    local cache_file="${HOME}/.cache/repofind.cache"
+    local filter=""
+    local refresh=false
+
+    for arg in "$@"; do
+        if [[ "$arg" == "--refresh" ]]; then
+            refresh=true
+        else
+            filter="$arg"
+        fi
+    done
+
+    # Rebuild cache if missing, stale (>1hr), or --refresh
+    if [[ "$refresh" == true ]] || [[ ! -f "$cache_file" ]] || [[ $(find "$cache_file" -mmin +60 2>/dev/null) ]]; then
+        mkdir -p "$(dirname "$cache_file")"
+        find "$repo_root" -name '.git' -type d -maxdepth 5 2>/dev/null | while read -r gitdir; do
+            local dir=$(dirname "$gitdir")
+            local name=${dir#$repo_root/}
+            local url=$(git -C "$dir" config --get remote.origin.url 2>/dev/null)
+            if [[ -n "$url" ]]; then
+                local web_url=$(echo "$url" | sed 's|^git@\(.*\):\(.*\)\.git$|https://\1/\2|')
+                printf "%s  →  %s\n" "$name" "$web_url"
+            fi
+        done | sort > "$cache_file"
+    fi
+
+    local repos
+    repos=$(cat "$cache_file")
+
+    if [[ -n "$filter" ]]; then
+        repos=$(echo "$repos" | grep -i "$filter" || true)
+    fi
+
+    if [[ -z "$repos" ]]; then
+        echo "No repos found" >&2
+        return 1
+    fi
+
+    local selected
+    selected=$(echo "$repos" | fzf --height=40% --reverse --prompt="Repo> ")
+
+    if [[ -n "$selected" ]]; then
+        local web_url=$(echo "$selected" | sed 's/.*→  //')
+        echo "→ open $web_url"
+        open "$web_url"
+    fi
+}
+
+_repofind "$@"
