@@ -116,6 +116,8 @@ alias lg="lazygit"
 #terraform
 alias tf="terraform"
 alias awsfind="source ~/scripts/awsfind"
+alias gafzf="source ~/scripts/gafzf"
+alias repofind="source ~/scripts/repofind"
 
 #kubenetes
 alias k="kubectl"

@@ -1,0 +1,18 @@
+#######################################
+# gafzf - Git add with fzf
+#
+# Lists modified/untracked/staged files via fzf
+# Select a file to `git add` it
+#######################################
+
+_gafzf() {
+    local file
+    file=$(git status --short | fzf --height=40% --reverse --prompt="git add> " --preview='git diff --color {2}' | awk '{print $2}')
+
+    if [[ -n "$file" ]]; then
+        echo "→ git add $file"
+        git add "$file"
+    fi
+}
+
+_gafzf
