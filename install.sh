@@ -34,27 +34,22 @@ fi
 
 # oh-my-zsh plugins
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] && \
-[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-[ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 [ ! -d "$ZSH_CUSTOM/plugins/zsh-system-clipboard" ] && \
     git clone https://github.com/kutsan/zsh-system-clipboard.git "$ZSH_CUSTOM/plugins/zsh-system-clipboard"
-
-## Taps
-brew tap satococoa/tap
 
 ## Formulae
 echo "Installing brew packages..."
 brew install coreutils stow fzf bat fd zoxide lua ripgrep eza \
     git lazygit neovim starship tree-sitter tree \
-    node nvm atuin satococoa/tap/wtp
+    node nvm atuin tmux joshmedeski/sesh/sesh
 
 # Casks
 echo "Installing casks..."
-brew install --cask wezterm@nightly
+brew install --cask ghostty
 brew install --cask font-hack-nerd-font
 brew install --cask font-jetbrains-mono-nerd-font
 
@@ -66,7 +61,13 @@ cd "$DOTFILES_DIR"
 # Ensure ~/.config exists
 mkdir -p "$HOME/.config"
 
-stow -t ~ wezterm zsh starship atuin nvim scripts
+stow -t ~ ghostty tmux wezterm zsh starship atuin nvim scripts
+
+# Tmux Plugin Manager
+if [ ! -d "$HOME/.config/tmux/.tmux/plugins/tpm" ]; then
+    echo "Installing TPM..."
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/.tmux/plugins/tpm"
+fi
 
 echo "=== Setup complete! ==="
 echo "Restart your terminal or run: source ~/.zshrc"
