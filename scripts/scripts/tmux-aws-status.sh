@@ -23,4 +23,4 @@ if [[ -n "$EXPIRY" && "$EXPIRY" != "None" ]]; then
     fi
   fi
 fi
-echo "$LABEL"
+echo "│ $LABEL"
