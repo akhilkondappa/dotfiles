@@ -12,11 +12,9 @@ ${custom.giturl}\
 $git_branch\
 ${custom.git_worktree}\
 $git_status\
-$line_break\
 $fill\
 $python\
-$aws\
-$kubernetes
+$line_break
 $character
 """
 
@@ -134,8 +132,6 @@ format = " ([$output ]($style))"
 style = "bold green"
 require_repo = true
 ignore_timeout = true
-
-
 [os]
 disabled = true
 
@@ -161,23 +157,44 @@ Redhat = "󱄛"
 RedHatEnterprise = "󱄛"
 
 [python]
-symbol = "[](surface0)🐍"
-style = "fg:green bg:surface0"
-format = '[$symbol ($version )(\($virtualenv\) )]($style)[](surface0) '
-detect_extensions = ["py"]
-detect_files = ["requirements.txt", "pyproject.toml", "setup.py"]
+symbol = "🐍"
+style = "fg:green"
+format = '[$symbol ($virtualenv)]($style) '
+detect_extensions = []
+detect_files = []
+detect_folders = ["venv", ".venv"]
 
 [kubernetes]
-symbol = "[](surface0)"
-style = "fg:teal bg:surface0"
-format = '$symbol[󱃾 $context\($namespace\)]($style)[](surface0)'
-disabled = false
+symbol = "󱃾 "
+style = "fg:teal"
+format = '[$symbol$context\($namespace\) ]($style)'
+disabled = true
 
 [aws]
-symbol = "[](surface0)"
-style = "fg:peach bg:surface0"
-format = '[$symbol $profile]($style)[](surface0) '
+disabled = true
 
+[custom.aws_assume]
+command = '''
+[ -z "$AWS_PROFILE" ] && exit 1
+LABEL="$AWS_PROFILE"
+if [ -n "$AWS_CREDENTIAL_EXPIRATION" ] && [ "$AWS_CREDENTIAL_EXPIRATION" != "None" ]; then
+  NOW=$(/bin/date +%s)
+  FIXED=$(echo "$AWS_CREDENTIAL_EXPIRATION" | sed 's/\([+-][0-9][0-9]\):\([0-9][0-9]\)$/\1\2/')
+  EXP=$(/bin/date -j -f "%Y-%m-%dT%H:%M:%S%z" "$FIXED" +%s 2>/dev/null)
+  if [ -n "$EXP" ]; then
+    REMAIN=$(( (EXP - NOW) / 60 ))
+    if [ $REMAIN -le 0 ]; then LABEL="$LABEL expired"
+    elif [ $REMAIN -lt 60 ]; then LABEL="$LABEL ${REMAIN}m"
+    else LABEL="$LABEL $(( REMAIN / 60 ))h$(( REMAIN % 60 ))m"
+    fi
+  fi
+fi
+echo "$LABEL"
+'''
+when = '[ -n "$AWS_PROFILE" ]'
+symbol = "󰸏 "
+style = "fg:peach"
+format = '[$symbol$output ]($style)'
 # ── Palettes ─────────────────────────────────────────────────
 # Switch theme: palette = "catppuccin_mocha" | "rose_pine" | "dracula"
 

@@ -1,8 +1,14 @@
 # oh-my-zsh
 export ZSH="$HOME/.oh-my-zsh"
 
+# Auto-launch tmux
+if command -v tmux &>/dev/null && [[ -z "$TMUX" ]]; then
+  tmux attach -t default 2>/dev/null || tmux new-session -s default
+fi
+
 export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml" # starship
 export TEALDEER_CONFIG_DIR="$HOME/.config/tealdeer/" # tldr
+export TMUX_CONF="$HOME/.config/tmux/tmux.conf" # tmux
 
 fpath=(~/.zsh/completions $fpath)
 
@@ -19,6 +25,7 @@ plugins=(
 )
 
 source $ZSH/oh-my-zsh.sh
+source $HOME/.secrets
 
 #----- Vim Editing modes & keymaps ------ 
 set -o vi 
@@ -42,6 +49,9 @@ export FZF_DEFAULT_OPTS="--height 50% --layout=default --border --color=hl:#2dd4
 export FZF_CTRL_T_OPTS="--preview 'bat --color=always -n --line-range :500 {}'"
 export FZF_ALT_C_OPTS="--preview 'eza --icons=always --tree --color=always {} | head -200'"
 
+# fzf preview for tmux
+export FZF_TMUX_OPTS=" -p90%,70% "
+
 # unbind ctrl g in terminal
 bindkey -r "^G"
 
@@ -63,11 +73,28 @@ eval "$(zoxide init zsh)" # zoxide
 
 eval "$(fzf --zsh)" # fzf
 source ~/scripts/fzf-git.sh # fzf git
+source ~/.config/dock/dock.sh # dock workspace orchestrator
 
 # Atuin configs
 export ATUIN_NOBIND="true"
 eval "$(atuin init zsh)"
 bindkey '^r' atuin-search-viins
+
+# ============= Sesh Tmux conf ==============
+function sesh-sessions() {
+    {
+        exec </dev/tty
+        exec <&1
+        local session
+        session=$(sesh list -t -c | fzf --height 50% --border-label ' sesh ' --border --prompt '🛸  ')
+        zle reset-prompt > /dev/null 2>&1 || true
+        [[ -z "$session" ]] && return
+        sesh connect $session
+    }
+}
+zle     -N             sesh-sessions
+bindkey -M vicmd '\es' sesh-sessions
+bindkey -M viins '\es' sesh-sessions
 
 # -------------------------------
 
@@ -76,6 +103,13 @@ bindkey '^r' atuin-search-viins
 alias c="clear"
 alias e="exit"
 alias vim="nvim"
+alias trl="tmux source-file ~/.config/tmux/tmux.conf && echo 'tmux reloaded'"
+alias rsynct="rsync -avh --progress --partial"
+
+# Tmux
+alias tmux="tmux -f $TMUX_CONF"
+alias a="tmux attach"
+alias tns="~/scripts/tmux-sessionizer.sh"
 
 # fzf 
 # called from ~/scripts/
@@ -121,6 +155,20 @@ alias repofind="source ~/scripts/repofind"
 
 #kubenetes
 alias k="kubectl"
+
+# Sync AWS env to per-pane file (for tmux status bar)
+_sync_aws_to_pane_file() {
+  [[ -z "${TMUX_PANE:-}" ]] && return
+  local f="$HOME/.kiro/panes/$TMUX_PANE"
+  mkdir -p "$HOME/.kiro/panes"
+  if [[ -n "${AWS_PROFILE:-}" ]]; then
+    echo "${AWS_PROFILE}|${AWS_CREDENTIAL_EXPIRATION:-}" > "$f"
+  else
+    rm -f "$f"
+  fi
+}
+precmd_functions+=(_sync_aws_to_pane_file)
+
 # ---------------------------------------
 
 # brew installations (new mac systems brew path: opt/homebrew , not usr/local )
@@ -130,3 +178,9 @@ alias k="kubectl"
 typeset -U PATH
 
 export PATH="$HOME/.local/bin:$PATH"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/eakhkon/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/eakhkon/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/eakhkon/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/eakhkon/google-cloud-sdk/completion.zsh.inc'; fi
