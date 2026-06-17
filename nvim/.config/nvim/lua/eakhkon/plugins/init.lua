@@ -1,17 +1,19 @@
 return {
-	"nvim-lua/plenary.nvim", --lua functions that many plugins use
-	"christoomey/vim-tmux-navigator", -- tmux & split window nav
-    -- fixes the well know nvim bug
+    "nvim-lua/plenary.nvim", --  multiple plugins need
+    "christoomey/vim-tmux-navigator", -- tmux & split window nav
+    -- fixes undefined globals
     {
         "folke/lazydev.nvim",
-        ft = "lua",
+        lazy = "VeryLazy",
+        priority = 1000,
         opts = {
             library = {
                 {
                     path = "${3rd}/plenary.nvim/lua",
                     words = { "plenary" }
                 },
+                { path = "LazyVim" },
             },
         },
     },
-  }
+}

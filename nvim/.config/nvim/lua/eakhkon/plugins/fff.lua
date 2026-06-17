@@ -7,22 +7,16 @@ return {
         require("fff.download").download_or_build_binary()
     end,
     lazy = false,
-    opts = { -- (optional)
-        debug = {
-            enabled = true,     -- we expect your collaboration at least during the beta
-            show_scores = true, -- to help us optimize the scoring system, feel free to share your scores!
-        },
-    },
     config = function()
         require("fff").setup({
             install = {
                 timeout = 1200, -- 20 minutes - should be plenty
             },
             title = 'Find Files',  -- Window title
-            max_results = 60,     -- Maximum search results to display
+            max_results = 100,     -- Maximum search results to display
             max_threads = 4,      -- Maximum threads for fuzzy search
             lazy_sync = true,
-            -- UI dimensions and appearance
+
             prompt = '🛸 ',       -- Input prompt symbol
             layout = {
                 width = 0.75,          -- Window width as fraction of screen
