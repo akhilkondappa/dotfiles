@@ -1,0 +1,20 @@
+#:schema https://github.com/joshmedeski/sesh/raw/main/sesh.schema.json
+
+[default_session]
+startup_command = "nvim"
+preview_command = "eza --all --git --icons --color=always {}"
+
+[[wildcard]]
+pattern = "~/Repo/worktrees/**"
+startup_command = "nvim"
+preview_command = "eza --all --git --icons --color=always {}"
+
+[[wildcard]]
+pattern = "~/Repo/dev/**"
+startup_command = "nvim"
+preview_command = "eza --all --git --icons --color=always {}"
+
+[[wildcard]]
+pattern = "~/sidekicks/**"
+startup_command = "nvim"
+preview_command = "eza --all --git --icons --color=always {}"

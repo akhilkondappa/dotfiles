@@ -1,10 +1,10 @@
 # By default Reload config with shft + cmd + ,
 config-file = themes/rosepine
-background-opacity = 0.88
-background-blur-radius = 25
+background-opacity = 0.85
+background-blur-radius = 10
 
 font-family = JetBrainsMonoNL Nerd Font
-font-size = 20
+font-size = 16
 font-feature = -liga,-calt,-dlig
 cursor-style = block
 cursor-style-blink = false
@@ -19,6 +19,7 @@ mouse-hide-while-typing = true
 
 confirm-close-surface = false
 window-decoration = auto
+window-save-state = always
 window-padding-x = 10
 window-padding-y = 10
 window-padding-balance = true
@@ -36,6 +37,7 @@ copy-on-select = clipboard
 keybind = ctrl+bracket_left=text:\x1b
 keybind = super+i=inspector:toggle
 keybind = ctrl+space>[=reload_config
+keybind = super+shift+comma=reload_config
 
 #-------------------------------------------
 
@@ -70,3 +72,69 @@ keybind = ctrl+space>l=goto_split:right
 #Shaders
 # custom-shader = shaders/bettercrt.glsl
 # custom-shader = shaders/retro-terminal.glsl
+
+#-------------------------------------------
+# Tmux keybinds (mirrors wezterm workflow)
+# \x01 = ctrl+a (tmux prefix)
+#-------------------------------------------
+
+# splits
+keybind = super+backslash=text:\x01|
+keybind = super+alt+backslash=text:\x01-
+
+# pane: zoom / close
+keybind = super+enter=text:\x01m
+keybind = super+x=text:\x01x
+
+# pane: navigate (vim-tmux-navigator uses ctrl+h/j/k/l directly without prefix)
+keybind = super+alt+h=text:\x01h
+keybind = super+alt+j=text:\x01j
+keybind = super+alt+k=text:\x01k
+keybind = super+alt+l=text:\x01l
+
+# pane: swap
+keybind = super+alt+s=text:\x01s
+
+# windows (tabs)
+keybind = super+t=text:\x01c
+keybind = super+[=text:\x1bH
+keybind = super+]=text:\x1bL
+keybind = super+alt+x=text:\x01&
+
+# window: move position
+keybind = super+alt+[=text:\x01<
+keybind = super+alt+]=text:\x01>
+
+# window: jump by number (override both physical and translated key defaults)
+keybind = super+1=text:\x011
+keybind = super+digit_1=text:\x011
+keybind = super+2=text:\x012
+keybind = super+digit_2=text:\x012
+keybind = super+3=text:\x013
+keybind = super+digit_3=text:\x013
+keybind = super+4=text:\x014
+keybind = super+digit_4=text:\x014
+keybind = super+5=text:\x015
+keybind = super+digit_5=text:\x015
+keybind = super+6=text:\x016
+keybind = super+digit_6=text:\x016
+keybind = super+7=text:\x017
+keybind = super+digit_7=text:\x017
+keybind = super+8=text:\x018
+keybind = super+digit_8=text:\x018
+keybind = super+9=text:\x019
+keybind = super+digit_9=text:\x019
+
+# scroll / search (enter copy-mode)
+keybind = super+f=text:\x01/
+keybind = super+u=text:\x01[
+
+# new ghostty window
+keybind = super+n=new_window
+
+# session picker (sesh)
+keybind = super+k=text:\x01K
+
+# dock workspace orchestrator
+keybind = alt+j=text:dock menu\x0d
+keybind = alt+shift+j=text:\x01\x04
