@@ -30,6 +30,8 @@ auto-update-channel = stable
 # extras
 shell-integration-features = no-cursor
 copy-on-select = clipboard
+clipboard-write = allow
+clipboard-read = allow
 # cmd or alt c copy (not vim yank)
 
 # Custom Keybinds & Config (super = cmd key on mac)

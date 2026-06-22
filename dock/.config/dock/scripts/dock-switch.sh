@@ -49,13 +49,15 @@ if [[ ! -d "$wt_path" ]]; then
   return 1
 fi
 
-# Switch tmux session
+# Switch tmux session (find by ticket prefix since name may include title)
 if [[ -n "${TMUX:-}" ]]; then
-  if tmux has-session -t "$ticket_id" 2>/dev/null; then
-    tmux switch-client -t "$ticket_id"
+  local _session
+  _session=$(tmux list-sessions -F '#S' 2>/dev/null | grep "^${ticket_id}" | head -1)
+  if [[ -n "$_session" ]]; then
+    tmux switch-client -t "=$_session"
   else
     tmux new-session -d -s "$ticket_id" -c "$wt_path"
-    tmux switch-client -t "$ticket_id"
+    tmux switch-client -t "=$ticket_id"
   fi
 fi
 

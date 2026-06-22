@@ -153,6 +153,9 @@ alias awsfind="source ~/scripts/awsfind"
 alias gafzf="source ~/scripts/gafzf"
 alias repofind="source ~/scripts/repofind"
 
+# kiro-cli
+alias kc="kiro-cli chat"
+
 #kubenetes
 alias k="kubectl"
 

@@ -90,6 +90,7 @@ cd ~/sidekicks/dotfiles && stow -t ~ ghostty tmux nvim zsh starship atuin wezter
 - **Rosé Pine** theme with 85% opacity + background blur
 - **Window state restore** — reopens layout on restart (`window-save-state = always`)
 - **Copy on select** — selected text auto-copies to clipboard
+- **Clipboard read/write** — OSC 52 enabled (allows kiro-cli Ctrl+Y copy)
 - **Hidden titlebar** — maximizes screen real estate
 - **Option as Alt** — proper terminal Alt key on macOS
 - **Shaders available** — uncomment in config: CRT, retro-terminal, bloom
@@ -279,7 +280,7 @@ dock <anything else>               # AI assist via Kiro CLI
 1. Fetches ticket summary from Jira (optional)
 2. Creates git worktree at `~/Repo/worktrees/<TICKET>/<repo-name>/`
 3. Creates branch `private/akhilk/<TICKET>`
-4. Creates tmux session named `<TICKET>`
+4. Creates tmux session named `<TICKET>/<short-title>` (e.g., `PEAWS-1234/fix-bug-in`)
 5. Switches to that session and cds into worktree
 
 ### State files
@@ -331,7 +332,7 @@ Sesh is the fast session switcher. Dock creates workspaces, sesh navigates betwe
 
 ### Integration with Dock
 
-- `dock work` creates worktree → registers with zoxide → `sesh connect` creates session
+- `dock work` creates worktree → registers with zoxide → creates tmux session `<TICKET>/<short-title>`
 - `dock switch` is deprecated — use sesh picker instead
 - `dock close` tears down worktree + session (sesh has no lifecycle management)
 

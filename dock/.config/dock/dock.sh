@@ -5,21 +5,13 @@
 DOCK_HOME="${DOCK_HOME:-$HOME/.config/dock}"
 DOCK_SCRIPTS="$DOCK_HOME/scripts"
 DOCK_STATE="$DOCK_HOME/workspaces.yaml"
-DOCK_HISTORY="$DOCK_HOME/history.yaml"
 DOCK_CURRENT="$DOCK_HOME/current-ticket"
-DOCK_CONFIG="$DOCK_HOME/config.yaml"
 
 # Branch convention
 DOCK_BRANCH_PREFIX="private/akhilk"
 
-# Ensure state files exist
+# Ensure state file exists
 [[ -f "$DOCK_STATE" ]] || echo "workspaces: []" > "$DOCK_STATE"
-[[ -f "$DOCK_HISTORY" ]] || echo "history: []" > "$DOCK_HISTORY"
-[[ -f "$DOCK_CONFIG" ]] || cat > "$DOCK_CONFIG" <<'EOF'
-# dock config
-jira_project: PEAPP
-repo_base: ~/Repo
-EOF
 
 dock() {
   local cmd="${1:-}"
@@ -56,8 +48,8 @@ EOF
 
 _dock_ai() {
   local prompt="$*"
-  if command -v kiro &>/dev/null; then
-    timeout 120 kiro chat --no-interactive --trust-all-tools --prompt "$prompt" 2>/dev/null \
+  if command -v kiro-cli &>/dev/null; then
+    timeout 120 kiro-cli chat --no-interactive --trust-all-tools "$prompt" 2>/dev/null \
       || echo "󰀦  AI request timed out or failed"
   else
     echo "󰀦  Kiro CLI not found. Install from kiro.dev"

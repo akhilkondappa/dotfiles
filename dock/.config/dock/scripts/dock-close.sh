@@ -48,9 +48,11 @@ fi
 
 echo "󰅖 Closing $ticket_id..."
 
-# Kill tmux session if it exists
-if tmux has-session -t "$ticket_id" 2>/dev/null; then
-  tmux kill-session -t "$ticket_id"
+# Kill tmux session if it exists (find by ticket prefix since name may include title)
+local _session
+_session=$(tmux list-sessions -F '#S' 2>/dev/null | grep "^${ticket_id}" | head -1)
+if [[ -n "$_session" ]]; then
+  tmux kill-session -t "=$_session"
   echo "   tmux session killed"
 fi
 
@@ -71,11 +73,7 @@ done <<< "$repos"
 rm -rf "$HOME/Repo/worktrees/$ticket_id" 2>/dev/null
 
 # Update state
-yq -e "del(.workspaces[] | select(.ticket == \"$ticket_id\"))" "$DOCK_STATE" | _dock_write_state
-
-yq --arg ticket "$ticket_id" --arg closed "$(date -u +%FT%TZ)" \
-  '.history += [{"ticket": $ticket, "closed": $closed}]' \
-  "$DOCK_HISTORY" > "$DOCK_HISTORY.tmp.$$" && mv "$DOCK_HISTORY.tmp.$$" "$DOCK_HISTORY"
+yq "del(.workspaces[] | select(.ticket == \"$ticket_id\"))" "$DOCK_STATE" | _dock_write_state
 
 # Clear current ticket if it was this one
 if [[ -f "$DOCK_CURRENT" ]] && [[ "$(cat "$DOCK_CURRENT")" == "$ticket_id" ]]; then

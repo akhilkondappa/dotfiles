@@ -80,9 +80,24 @@ if yq -e ".workspaces[] | select(.ticket == \"$ticket_id\") | .repos[] | select(
   if [[ -d "$wt_dest" ]]; then
     echo "󰀦  Already docked: $repo_name for $ticket_id. Switching."
     cd "$wt_dest"
-    # Switch to existing tmux session if available
-    if [[ -n "${TMUX:-}" ]] && tmux has-session -t "$ticket_id" 2>/dev/null; then
-      tmux switch-client -t "$ticket_id"
+    if [[ -n "${TMUX:-}" ]]; then
+      local existing_session
+      existing_session=$(tmux list-sessions -F '#S' 2>/dev/null | grep "^${ticket_id}" | head -1)
+      if [[ -n "$existing_session" ]]; then
+        tmux switch-client -t "=$existing_session"
+      else
+        # No session exists — create one with proper naming
+        local _summary
+        _summary=$(yq -r ".workspaces[] | select(.ticket == \"$ticket_id\") | .summary // \"\"" "$DOCK_STATE" 2>/dev/null)
+        local _sname="$ticket_id"
+        if [[ -n "$_summary" ]]; then
+          local _stitle
+          _stitle=$(printf '%s' "$_summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//' | cut -c1-10 | sed 's/-$//')
+          [[ -n "$_stitle" ]] && _sname="${ticket_id}/${_stitle}"
+        fi
+        tmux new-session -d -s "$_sname" -c "$wt_dest"
+        tmux switch-client -t "=$_sname"
+      fi
     fi
     return 0
   fi
@@ -128,7 +143,11 @@ fi
 
 # Write state
 local workspace_exists
-workspace_exists=$(yq -e ".workspaces[] | select(.ticket == \"$ticket_id\")" "$DOCK_STATE" 2>/dev/null && echo "yes" || echo "no")
+if yq -e ".workspaces[] | select(.ticket == \"$ticket_id\")" "$DOCK_STATE" &>/dev/null; then
+  workspace_exists="yes"
+else
+  workspace_exists="no"
+fi
 
 if [[ "$workspace_exists" == "yes" ]]; then
   yq "(.workspaces[] | select(.ticket == \"$ticket_id\") | .repos) += [\"$repo_path\"]" \
@@ -144,23 +163,28 @@ echo "$ticket_id" > "$DOCK_CURRENT"
 # Register with zoxide so sesh can find it
 command -v zoxide &>/dev/null && zoxide add "$wt_dest"
 
-# Tmux session via sesh
+# Build session name: TICKET/short-title (10 chars max)
+# Note: tmux converts ':' to '_', so we use '/' as separator
+local session_name="$ticket_id"
+if [[ -n "$summary" ]]; then
+  local short_title
+  short_title=$(printf '%s' "$summary" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//' | cut -c1-10 | sed 's/-$//')
+  [[ -n "$short_title" ]] && session_name="${ticket_id}/${short_title}"
+fi
+
+# Tmux session
 if [[ -n "${TMUX:-}" ]]; then
-  if ! tmux has-session -t "$ticket_id" 2>/dev/null; then
-    sesh connect "$wt_dest" 2>/dev/null || {
-      tmux new-session -d -s "$ticket_id" -c "$wt_dest"
-      tmux switch-client -t "$ticket_id"
-    }
+  if ! tmux has-session -t "=$session_name" 2>/dev/null; then
+    tmux new-session -d -s "$session_name" -c "$wt_dest"
+    tmux switch-client -t "=$session_name"
   else
-    tmux switch-client -t "$ticket_id"
+    tmux switch-client -t "=$session_name"
   fi
 elif command -v tmux &>/dev/null; then
-  if ! tmux has-session -t "$ticket_id" 2>/dev/null; then
-    sesh connect "$wt_dest" 2>/dev/null || {
-      tmux new-session -d -s "$ticket_id" -c "$wt_dest"
-    }
+  if ! tmux has-session -t "=$session_name" 2>/dev/null; then
+    tmux new-session -d -s "$session_name" -c "$wt_dest"
   fi
-  echo "   tmux session '$ticket_id' created. Attach with: tmux attach -t $ticket_id"
+  echo "   tmux session '$session_name' created. Attach with: tmux attach -t '=$session_name'"
 fi
 
 echo "   Worktree: $wt_dest"
