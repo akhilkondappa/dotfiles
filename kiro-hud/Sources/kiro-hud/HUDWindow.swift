@@ -1,13 +1,17 @@
 import AppKit
 import SwiftUI
 
-// NSPanel subclass that can always become key (required for text input in borderless windows)
 class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 }
 
-class HUDWindowController: NSObject {
+@MainActor
+class HUDWindowController: ObservableObject {
+    @Published var tabs: [TabState] = []
+    @Published var activeTabId: UUID? = nil
+    @Published var isExpanded = false
+
     private var panel: KeyablePanel?
     private let config: Config
     private let hudWidth: CGFloat = 360
@@ -16,35 +20,65 @@ class HUDWindowController: NSObject {
         self.config = config
     }
 
-    func show(agent: String, snippet: String, session: String, window: String) {
-        guard let screen = NSScreen.main else { return }
+    func addTab(_ tab: TabState) {
+        tabs.append(tab)
+        activeTabId = tab.id
+        if panel == nil { showWindow() }
+        else { updateContent(); activateWindow() }
+    }
+
+    func removeTab(_ id: UUID) {
+        tabs.removeAll { $0.id == id }
+        if tabs.isEmpty {
+            hideWindow()
+        } else {
+            if activeTabId == id { activeTabId = tabs.last?.id }
+            updateContent()
+        }
+    }
+
+    func removeAllTabs() {
+        tabs.removeAll()
+        hideWindow()
+    }
+
+    func selectTab(_ id: UUID) {
+        activeTabId = id
+        if let idx = tabs.firstIndex(where: { $0.id == id }) {
+            tabs[idx].isRead = true
+        }
+        updateContent()
+    }
+
+    func toggleExpand() {
+        isExpanded.toggle()
+        guard let p = panel, let screen = NSScreen.main else { return }
         let margin: CGFloat = 16
-        let estimatedHeight: CGFloat = snippet.isEmpty ? 140 : 200
-
         let screenFrame = screen.visibleFrame
-        let finalX: CGFloat
-        let finalY: CGFloat
-        let startY: CGFloat
 
-        switch config.position {
-        case .bottomRight:
-            finalX = screenFrame.maxX - hudWidth - margin
-            finalY = screenFrame.minY + margin
-            startY = finalY - estimatedHeight - 20
-        case .topRight:
-            finalX = screenFrame.maxX - hudWidth - margin
-            finalY = screenFrame.maxY - estimatedHeight - margin
-            startY = finalY + estimatedHeight + 20
+        let targetRect: NSRect
+        if isExpanded {
+            let panelWidth = max(hudWidth, screenFrame.width * 0.2)
+            targetRect = NSRect(x: screenFrame.maxX - panelWidth - margin, y: screenFrame.minY + margin,
+                                width: panelWidth, height: screenFrame.height - margin * 2)
+        } else {
+            targetRect = compactRect(screen: screen)
         }
 
-        let startRect = NSRect(x: finalX, y: startY, width: hudWidth, height: estimatedHeight)
+        updateContent()
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.3
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            p.animator().setFrame(targetRect, display: true)
+        }
+    }
 
-        let p = KeyablePanel(
-            contentRect: startRect,
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
+    private func showWindow() {
+        guard let screen = NSScreen.main else { return }
+        let rect = compactRect(screen: screen)
+        let startRect = NSRect(x: rect.origin.x, y: rect.origin.y - 30, width: rect.width, height: rect.height)
+
+        let p = KeyablePanel(contentRect: startRect, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         p.level = .floating
         p.isOpaque = false
         p.backgroundColor = .clear
@@ -52,87 +86,50 @@ class HUDWindowController: NSObject {
         p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         p.isMovable = false
 
-        let hudView = HUDView(
-            agent: agent,
-            snippet: snippet,
-            session: session,
-            window: window,
-            dismissSeconds: config.dismissSeconds,
-            onDismiss: { [weak self] in self?.dismiss() }
-        )
-
-        let hostingView = NSHostingView(rootView: hudView)
-        p.contentView = hostingView
-
-        // Size to fit content
-        let fittingSize = hostingView.fittingSize
-        let finalRect = NSRect(x: finalX, y: finalY, width: hudWidth, height: fittingSize.height)
-        p.setFrame(NSRect(x: finalX, y: startY, width: hudWidth, height: fittingSize.height), display: false)
-
-        p.orderFront(nil)
         self.panel = p
+        updateContent()
+        p.orderFront(nil)
 
-        // Activate app + make panel key after short delay
+        // Slide in
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.3
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            p.animator().setFrame(rect, display: true)
+        }
+
+        activateWindow()
+    }
+
+    private func hideWindow() {
+        guard let p = panel else { return }
+        self.panel = nil
+        isExpanded = false
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.2
+            p.animator().alphaValue = 0
+        }, completionHandler: {
+            p.orderOut(nil)
+        })
+    }
+
+    private func activateWindow() {
+        guard let p = panel else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             NSApp.activate(ignoringOtherApps: true)
             p.makeKeyAndOrderFront(nil)
-            // Find and focus the NSTextField
-            if let textField = self.findTextField(in: p.contentView) {
-                p.makeFirstResponder(textField)
-            }
-        }
-
-        // Slide in
-        NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = 0.3
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            p.animator().setFrame(finalRect, display: true)
-        })
-
-        // Dismiss on click outside (delayed to avoid self-trigger)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-                guard let self, let panel = self.panel else { return }
-                if !panel.frame.contains(NSEvent.mouseLocation) {
-                    self.dismiss()
-                }
-            }
-        }
-
-        // ESC key
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { self?.dismiss() }
-            return event
         }
     }
 
-    private func findTextField(in view: NSView?) -> NSTextField? {
-        guard let view else { return nil }
-        if let tf = view as? NSTextField, tf.isEditable { return tf }
-        for sub in view.subviews {
-            if let found = findTextField(in: sub) { return found }
-        }
-        return nil
-    }
-
-    func dismiss() {
+    private func updateContent() {
         guard let p = panel else { return }
-        self.panel = nil
+        let view = HUDView(controller: self)
+        p.contentView = NSHostingView(rootView: view)
+    }
 
-        let offY: CGFloat
-        switch config.position {
-        case .bottomRight: offY = p.frame.origin.y - p.frame.height - 20
-        case .topRight: offY = p.frame.origin.y + p.frame.height + 20
-        }
-        let endRect = NSRect(x: p.frame.origin.x, y: offY, width: p.frame.width, height: p.frame.height)
-
-        NSAnimationContext.runAnimationGroup({ ctx in
-            ctx.duration = 0.25
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            p.animator().setFrame(endRect, display: true)
-            p.animator().alphaValue = 0
-        }, completionHandler: {
-            NSApp.terminate(nil)
-        })
+    private func compactRect(screen: NSScreen) -> NSRect {
+        let margin: CGFloat = 16
+        let sf = screen.visibleFrame
+        let h: CGFloat = 240
+        return NSRect(x: sf.maxX - hudWidth - margin, y: sf.minY + margin + 50, width: hudWidth, height: h)
     }
 }
