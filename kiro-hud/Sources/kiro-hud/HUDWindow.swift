@@ -4,7 +4,7 @@ import SwiftUI
 class HUDWindowController: NSObject {
     private var panel: NSPanel?
     private let config: Config
-    private let hudWidth: CGFloat = 280
+    private let hudWidth: CGFloat = 360
 
     init(config: Config) {
         self.config = config
