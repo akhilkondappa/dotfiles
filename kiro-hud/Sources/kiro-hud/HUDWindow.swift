@@ -38,7 +38,6 @@ class HUDWindowController: NSObject {
         }
 
         let startRect = NSRect(x: finalX, y: startY, width: hudWidth, height: estimatedHeight)
-        let finalRect = NSRect(x: finalX, y: finalY, width: hudWidth, height: estimatedHeight)
 
         let p = KeyablePanel(
             contentRect: startRect,
@@ -63,25 +62,12 @@ class HUDWindowController: NSObject {
         )
 
         let hostingView = NSHostingView(rootView: hudView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
         p.contentView = hostingView
 
-        // Let panel auto-resize to fit SwiftUI content
+        // Size to fit content
         let fittingSize = hostingView.fittingSize
-        let frame = NSRect(x: startRect.origin.x, y: startRect.origin.y, width: hudWidth, height: fittingSize.height)
-        p.setFrame(frame, display: false)
-
-        // Observe content size changes to resize panel (for expand/collapse)
-        hostingView.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: hostingView, queue: .main) { [weak self] _ in
-            guard let self, let panel = self.panel else { return }
-            let newSize = hostingView.fittingSize
-            var f = panel.frame
-            let heightDiff = newSize.height - f.height
-            f.size.height = newSize.height
-            f.origin.y -= heightDiff  // grow upward for bottom-right
-            panel.setFrame(f, display: true, animate: true)
-        }
+        let finalRect = NSRect(x: finalX, y: finalY, width: hudWidth, height: fittingSize.height)
+        p.setFrame(NSRect(x: finalX, y: startY, width: hudWidth, height: fittingSize.height), display: false)
 
         p.orderFront(nil)
         self.panel = p
@@ -97,14 +83,14 @@ class HUDWindowController: NSObject {
         }
 
         // Slide in
-        NSAnimationContext.runAnimationGroup { ctx in
+        NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.3
             ctx.timingFunction = CAMediaTimingFunction(name: .easeOut)
             p.animator().setFrame(finalRect, display: true)
-        }
+        })
 
         // Dismiss on click outside (delayed to avoid self-trigger)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
                 guard let self, let panel = self.panel else { return }
                 if !panel.frame.contains(NSEvent.mouseLocation) {
