@@ -158,7 +158,7 @@ struct HUDView: View {
 
         return Button(action: { controller.selectTab(tab.id) }) {
             HStack(spacing: 4) {
-                Text(tab.label).font(.system(size: 15, weight: isUnread ? .semibold : .regular))
+                Text(tab.label).font(.system(size: 14, weight: isUnread ? .semibold : .regular))
                     .foregroundColor(isActive ? .rpText : isUnread ? .rpIris : .rpSubtle)
                     .lineLimit(1)
                 // Per-tab close
