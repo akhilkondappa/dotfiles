@@ -157,6 +157,7 @@ kc() {
   if [[ -n "$TMUX" ]]; then
     local win_id agent dir prev_name prev=""
     win_id=$(tmux display-message -p "#{window_id}")
+    local session_name=$(tmux display-message -p "#{session_name}")
     prev_name=$(tmux display-message -p "#W")
     agent="kiro"
     for i in "$@"; do
@@ -166,7 +167,7 @@ kc() {
     dir=$(basename "$PWD")
     tmux rename-window -t "$win_id" "${dir}:${agent}"
     tmux set-window-option -t "$win_id" automatic-rename off
-    KIRO_TMUX_WINDOW="$win_id" kiro-cli chat "$@"
+    KIRO_TMUX_WINDOW="$win_id" KIRO_TMUX_SESSION="$session_name" kiro-cli chat "$@"
     tmux rename-window -t "$win_id" "$prev_name"
     tmux set-window-option -t "$win_id" automatic-rename on
   else
