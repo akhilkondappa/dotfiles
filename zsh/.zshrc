@@ -155,12 +155,10 @@ alias repofind="source ~/scripts/repofind"
 # kiro-cli
 kc() {
   if [[ -n "$TMUX" ]]; then
-    local win_id agent dir prev_name
+    local win_id agent dir prev_name prev=""
     win_id=$(tmux display-message -p "#{window_id}")
     prev_name=$(tmux display-message -p "#W")
-    # Extract --agent value if provided
     agent="kiro"
-    local prev=""
     for i in "$@"; do
       [[ "$prev" == "--agent" ]] && agent="$i"
       prev="$i"
@@ -168,8 +166,7 @@ kc() {
     dir=$(basename "$PWD")
     tmux rename-window -t "$win_id" "${dir}:${agent}"
     tmux set-window-option -t "$win_id" automatic-rename off
-    kiro-cli chat "$@"
-    # Restore on exit
+    KIRO_TMUX_WINDOW="$win_id" kiro-cli chat "$@"
     tmux rename-window -t "$win_id" "$prev_name"
     tmux set-window-option -t "$win_id" automatic-rename on
   else
