@@ -25,7 +25,7 @@ guard !session.isEmpty, !window.isEmpty else {
 
 let config = Config.load()
 let app = NSApplication.shared
-app.setActivationPolicy(.accessory) // no dock icon
+app.setActivationPolicy(.accessory) // no dock icon, but can become key window
 
 let controller = HUDWindowController(config: config)
 
