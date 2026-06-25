@@ -62,7 +62,27 @@ class HUDWindowController: NSObject {
             onDismiss: { [weak self] in self?.dismiss() }
         )
 
-        p.contentView = NSHostingView(rootView: hudView)
+        let hostingView = NSHostingView(rootView: hudView)
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        p.contentView = hostingView
+
+        // Let panel auto-resize to fit SwiftUI content
+        let fittingSize = hostingView.fittingSize
+        let frame = NSRect(x: startRect.origin.x, y: startRect.origin.y, width: hudWidth, height: fittingSize.height)
+        p.setFrame(frame, display: false)
+
+        // Observe content size changes to resize panel (for expand/collapse)
+        hostingView.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: hostingView, queue: .main) { [weak self] _ in
+            guard let self, let panel = self.panel else { return }
+            let newSize = hostingView.fittingSize
+            var f = panel.frame
+            let heightDiff = newSize.height - f.height
+            f.size.height = newSize.height
+            f.origin.y -= heightDiff  // grow upward for bottom-right
+            panel.setFrame(f, display: true, animate: true)
+        }
+
         p.orderFront(nil)
         self.panel = p
 
