@@ -97,7 +97,7 @@ struct HUDView: View {
                         HStack(alignment: .top, spacing: 0) {
                             Rectangle().fill(Color.rpRose).frame(width: 3)
                             Text(tab.snippet)
-                                .font(.system(size: 14))
+                                .font(.system(size: 15))
                                 .foregroundColor(.rpMuted)
                                 .multilineTextAlignment(.leading)
                                 .padding(.leading, 8)
@@ -158,12 +158,12 @@ struct HUDView: View {
 
         return Button(action: { controller.selectTab(tab.id) }) {
             HStack(spacing: 4) {
-                Text(tab.label).font(.system(size: 11, weight: isUnread ? .semibold : .regular))
+                Text(tab.label).font(.system(size: 13, weight: isUnread ? .semibold : .regular))
                     .foregroundColor(isActive ? .rpText : isUnread ? .rpIris : .rpSubtle)
                     .lineLimit(1)
                 // Per-tab close
                 Button(action: { controller.removeTab(tab.id) }) {
-                    Text("✕").font(.system(size: 9)).foregroundColor(.rpSubtle)
+                    Text("✕").font(.system(size: 12, weight: .medium)).foregroundColor(.rpMuted)
                 }.buttonStyle(.plain)
             }
             .padding(.horizontal, 8).padding(.vertical, 4)
