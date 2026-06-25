@@ -36,7 +36,7 @@ class HUDWindowController: NSObject {
 
         let p = NSPanel(
             contentRect: startRect,
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -46,6 +46,7 @@ class HUDWindowController: NSObject {
         p.hasShadow = false
         p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         p.isMovable = false
+        p.becomesKeyOnlyIfNeeded = false
 
         let hudView = HUDView(
             agent: agent,
@@ -58,7 +59,8 @@ class HUDWindowController: NSObject {
 
         p.contentView = NSHostingView(rootView: hudView)
         p.orderFront(nil)
-
+        p.makeKey()
+        NSApp.activate(ignoringOtherApps: true)
         self.panel = p
 
         // Slide in
