@@ -157,7 +157,13 @@ Sesh fzf picker controls:
 |-----|--------|
 | `prefix + v` | Enter copy mode |
 | `v` | Begin selection |
-| `y` | Copy selection |
+| `y` | Copy selection to clipboard |
+| `Cmd+u` (Ghostty) | Enter copy mode (Ghostty → tmux shortcut) |
+
+**Copying long output that scrolled off:**
+- `Cmd+u` → enter copy mode → scroll with `Ctrl+u/d` or `k/j` → `v` to select → `y` to copy
+- Mouse drag also works — `copy-on-select = clipboard` is on in Ghostty
+- `/` in copy mode → search backward through scrollback
 
 ### Utility
 
@@ -401,6 +407,57 @@ Sesh is the fast session switcher. Dock creates workspaces, sesh navigates betwe
 - **zsh-autosuggestions** — fish-style suggestions
 - **zsh-syntax-highlighting** — command validation highlighting
 - **zsh-system-clipboard** — vi mode uses system clipboard
+
+---
+
+## Git Workflow (Terminal-Only)
+
+### lazygit (`lg`)
+
+| Key | Action |
+|-----|--------|
+| `j/k` | Navigate files |
+| `e` | Open file in nvim |
+| `<space>` | Stage/unstage file or hunk |
+| `v` + `<space>` | Visual select hunks to stage |
+| `d` | View diff |
+| `]` / `[` | Next/prev changed file |
+| `c` | Commit |
+| `p` / `P` | Pull / Push |
+| `b` | Branch panel |
+| `q` | Quit back to terminal |
+
+From nvim → `:q` closes nvim → back in lazygit → `q` exits.
+
+**Lazygit as tmux popup** (`prefix + Ctrl+g`) — floating overlay, `q` to dismiss.
+
+### fzf-git (`Ctrl+G` then a key)
+
+Use from shell prompt — selected value pastes into your command line.
+
+| Keys | Action |
+|------|--------|
+| `Ctrl+G` `f` | Fuzzy pick changed/tracked files |
+| `Ctrl+G` `b` | Fuzzy pick branches |
+| `Ctrl+G` `h` | Fuzzy pick commit hashes |
+| `Ctrl+G` `s` | Fuzzy pick stashes |
+| `Ctrl+G` `t` | Fuzzy pick tags |
+
+**Usage pattern:** `nvim <Ctrl+G f>` → pick file → opens in nvim
+
+### Nvim git (gitsigns + fugitive)
+
+| Key | Action |
+|-----|--------|
+| `]h` / `[h` | Jump to next/prev hunk |
+| `<leader>gp` | Preview hunk inline |
+| `<leader>gs` | Stage hunk |
+| `<leader>gr` | Reset hunk |
+| `<leader>gu` | Undo stage hunk |
+| `<leader>gd` | Diff this file |
+| `<leader>gbl` | Blame current line |
+| `<leader>gB` | Toggle line blame |
+| `<leader>gg` | Fugitive full-screen git status |
 
 ---
 
