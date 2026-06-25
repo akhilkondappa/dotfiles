@@ -98,7 +98,7 @@ struct HUDView: View {
                 // Header
                 HStack {
                     Text(agent)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.rpText)
                     Text("done")
                         .font(.system(size: 12))
@@ -110,7 +110,7 @@ struct HUDView: View {
                     Spacer()
                     if autoDismiss && !paused {
                         Text("\(max(0, Int(Double(dismissSeconds) * progress)))s")
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.system(size: 16, design: .monospaced))
                             .foregroundColor(.rpSubtle)
                     }
                     if paused && autoDismiss {
@@ -158,7 +158,7 @@ struct HUDView: View {
                 // Reply input
                 HStack {
                     TextField("Reply to kiro…", text: $reply)
-                        .font(.system(size: 14, design: .monospaced))
+                        .font(.system(size: 16, design: .monospaced))
                         .foregroundColor(.rpText)
                         .textFieldStyle(.plain)
                         .focused($inputFocused)
@@ -209,7 +209,7 @@ struct HUDView: View {
     private func actionButton(_ label: String, fg: Color, bg: Color, border: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .font(.system(size: 15, weight: .medium, design: .monospaced))
                 .foregroundColor(fg)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
