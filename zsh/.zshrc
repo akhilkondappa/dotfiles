@@ -153,7 +153,24 @@ alias gafzf="source ~/scripts/gafzf"
 alias repofind="source ~/scripts/repofind"
 
 # kiro-cli
-alias kc="kiro-cli chat"
+kc() {
+  if [[ -n "$TMUX" ]]; then
+    local win_id agent dir prev_name
+    win_id=$(tmux display-message -p "#{window_id}")
+    prev_name=$(tmux display-message -p "#W")
+    # Extract --agent value if provided
+    agent=$(echo "$*" | grep -oP '(?<=--agent )\S+' || echo "kiro")
+    dir=$(basename "$PWD")
+    tmux rename-window -t "$win_id" "${dir}:${agent}"
+    tmux set-window-option -t "$win_id" automatic-rename off
+    kiro-cli chat "$@"
+    # Restore on exit
+    tmux rename-window -t "$win_id" "$prev_name"
+    tmux set-window-option -t "$win_id" automatic-rename on
+  else
+    kiro-cli chat "$@"
+  fi
+}
 
 #kubenetes
 alias k="kubectl"
