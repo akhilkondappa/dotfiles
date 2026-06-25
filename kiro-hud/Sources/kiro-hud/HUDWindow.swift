@@ -1,8 +1,14 @@
 import AppKit
 import SwiftUI
 
+// NSPanel subclass that can always become key (required for text input in borderless windows)
+class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
+}
+
 class HUDWindowController: NSObject {
-    private var panel: NSPanel?
+    private var panel: KeyablePanel?
     private let config: Config
     private let hudWidth: CGFloat = 360
 
@@ -13,7 +19,7 @@ class HUDWindowController: NSObject {
     func show(agent: String, snippet: String, session: String, window: String) {
         guard let screen = NSScreen.main else { return }
         let margin: CGFloat = 16
-        let estimatedHeight: CGFloat = snippet.isEmpty ? 120 : 170
+        let estimatedHeight: CGFloat = snippet.isEmpty ? 140 : 200
 
         let screenFrame = screen.visibleFrame
         let finalX: CGFloat
@@ -34,9 +40,9 @@ class HUDWindowController: NSObject {
         let startRect = NSRect(x: finalX, y: startY, width: hudWidth, height: estimatedHeight)
         let finalRect = NSRect(x: finalX, y: finalY, width: hudWidth, height: estimatedHeight)
 
-        let p = NSPanel(
+        let p = KeyablePanel(
             contentRect: startRect,
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -46,7 +52,6 @@ class HUDWindowController: NSObject {
         p.hasShadow = false
         p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         p.isMovable = false
-        p.becomesKeyOnlyIfNeeded = false
 
         let hudView = HUDView(
             agent: agent,
@@ -59,9 +64,22 @@ class HUDWindowController: NSObject {
 
         p.contentView = NSHostingView(rootView: hudView)
         p.orderFront(nil)
-        p.makeKey()
-        NSApp.activate(ignoringOtherApps: true)
         self.panel = p
+
+        // Activate app + make panel key after short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NSApp.activate(ignoringOtherApps: true)
+            p.makeKeyAndOrderFront(nil)
+            // Find and focus the NSTextField
+            if let textField = self.findTextField(in: p.contentView) {
+                p.makeFirstResponder(textField)
+            }
+        }
+
+        // Hide dock icon once we're key
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            NSApp.setActivationPolicy(.accessory)
+        }
 
         // Slide in
         NSAnimationContext.runAnimationGroup { ctx in
@@ -70,9 +88,14 @@ class HUDWindowController: NSObject {
             p.animator().setFrame(finalRect, display: true)
         }
 
-        // Dismiss on click outside
-        NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            self?.dismiss()
+        // Dismiss on click outside (delayed to avoid self-trigger)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+                guard let self, let panel = self.panel else { return }
+                if !panel.frame.contains(NSEvent.mouseLocation) {
+                    self.dismiss()
+                }
+            }
         }
 
         // ESC key
@@ -80,6 +103,15 @@ class HUDWindowController: NSObject {
             if event.keyCode == 53 { self?.dismiss() }
             return event
         }
+    }
+
+    private func findTextField(in view: NSView?) -> NSTextField? {
+        guard let view else { return nil }
+        if let tf = view as? NSTextField, tf.isEditable { return tf }
+        for sub in view.subviews {
+            if let found = findTextField(in: sub) { return found }
+        }
+        return nil
     }
 
     func dismiss() {
