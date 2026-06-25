@@ -121,7 +121,6 @@ struct HUDView: View {
     @State private var timerTask: Task<Void, Never>? = nil
     @State private var isHovered = false
     @State private var inputFocused = false
-    @State private var expanded = false
 
     private var showYesNo: Bool { snippet.contains("?") }
     private var autoDismiss: Bool { dismissSeconds > 0 }
@@ -173,31 +172,14 @@ struct HUDView: View {
 
                 // Snippet
                 if !snippet.isEmpty {
-                    VStack(spacing: 4) {
-                        HStack(alignment: .top, spacing: 0) {
-                            Rectangle().fill(Color.rpRose).frame(width: 3)
-                            ScrollView {
-                                Text(snippet)
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.rpMuted)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.leading, 8)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .frame(maxHeight: expanded ? 200 : 60)
-                        }
-                        if snippet.count > 150 {
-                            Button(action: { withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() } }) {
-                                Text(expanded ? "▲ Show less" : "▼ Show full response")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.rpIris)
-                                    .padding(.horizontal, 10).padding(.vertical, 3)
-                                    .background(Color.rpIris.opacity(0.1))
-                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.rpIris.opacity(0.2), lineWidth: 1))
-                                    .cornerRadius(10)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                    HStack(alignment: .top, spacing: 0) {
+                        Rectangle().fill(Color.rpRose).frame(width: 3)
+                        Text(snippet)
+                            .font(.system(size: 14))
+                            .foregroundColor(.rpMuted)
+                            .lineLimit(8)
+                            .multilineTextAlignment(.leading)
+                            .padding(.leading, 8)
                     }
                     .padding(.horizontal, 14).padding(.bottom, 10)
                 }
