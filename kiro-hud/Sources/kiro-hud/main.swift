@@ -24,14 +24,20 @@ guard !session.isEmpty, !window.isEmpty else {
 }
 
 let config = Config.load()
-let app = NSApplication.shared
-app.setActivationPolicy(.accessory) // no dock icon, but can become key window
 
-let controller = HUDWindowController(config: config)
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var controller: HUDWindowController?
 
-// Show HUD on main thread after app starts
-DispatchQueue.main.async {
-    controller.show(agent: agent, snippet: snippet, session: session, window: window)
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        controller = HUDWindowController(config: config)
+        controller?.show(agent: agent, snippet: snippet, session: session, window: window)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
 
+let app = NSApplication.shared
+let delegate = AppDelegate()
+app.delegate = delegate
+app.setActivationPolicy(.regular)
 app.run()

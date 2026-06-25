@@ -63,6 +63,51 @@ class HoverView: NSView {
     override func mouseExited(with event: NSEvent) { onHover?(false) }
 }
 
+// NSTextField wrapper that properly handles first responder in borderless windows
+struct FocusableTextField: NSViewRepresentable {
+    @Binding var text: String
+    var placeholder: String
+    var onSubmit: () -> Void
+    var onFocus: (Bool) -> Void
+
+    func makeNSView(context: Context) -> NSTextField {
+        let tf = NSTextField()
+        tf.placeholderString = placeholder
+        tf.isBordered = false
+        tf.drawsBackground = false
+        tf.font = .monospacedSystemFont(ofSize: 15, weight: .regular)
+        tf.textColor = NSColor(red: 224/255, green: 222/255, blue: 244/255, alpha: 1)
+        tf.focusRingType = .none
+        tf.delegate = context.coordinator
+        return tf
+    }
+
+    func updateNSView(_ tf: NSTextField, context: Context) {
+        if tf.stringValue != text { tf.stringValue = text }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, NSTextFieldDelegate {
+        let parent: FocusableTextField
+        init(_ parent: FocusableTextField) { self.parent = parent }
+
+        func controlTextDidChange(_ obj: Notification) {
+            guard let tf = obj.object as? NSTextField else { return }
+            parent.text = tf.stringValue
+        }
+        func control(_ control: NSControl, textView: NSTextView, doCommandBy sel: Selector) -> Bool {
+            if sel == #selector(NSResponder.insertNewline(_:)) {
+                parent.onSubmit()
+                return true
+            }
+            return false
+        }
+        func controlTextDidBeginEditing(_ obj: Notification) { parent.onFocus(true) }
+        func controlTextDidEndEditing(_ obj: Notification) { parent.onFocus(false) }
+    }
+}
+
 struct HUDView: View {
     let agent: String
     let snippet: String
@@ -75,7 +120,7 @@ struct HUDView: View {
     @State private var progress: Double = 1.0
     @State private var timerTask: Task<Void, Never>? = nil
     @State private var isHovered = false
-    @FocusState private var inputFocused: Bool
+    @State private var inputFocused = false
 
     private var showYesNo: Bool { snippet.contains("?") }
     private var autoDismiss: Bool { dismissSeconds > 0 }
@@ -98,7 +143,7 @@ struct HUDView: View {
                 // Header
                 HStack {
                     Text(agent)
-                        .font(.system(size: 17, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.rpText)
                     Text("done")
                         .font(.system(size: 12))
@@ -157,12 +202,11 @@ struct HUDView: View {
 
                 // Reply input
                 HStack {
-                    TextField("Reply to kiro…", text: $reply)
-                        .font(.system(size: 16, design: .monospaced))
-                        .foregroundColor(.rpText)
-                        .textFieldStyle(.plain)
-                        .focused($inputFocused)
-                        .onSubmit { sendReply() }
+                    FocusableTextField(text: $reply, placeholder: "Reply to kiro…", onSubmit: { sendReply() }, onFocus: { focused in
+                        inputFocused = focused
+                        if focused { timerTask?.cancel() } else { continueTimer() }
+                    })
+                    .frame(height: 22)
                     Text("↵")
                         .font(.system(size: 11))
                         .foregroundColor(.rpSubtle)
@@ -201,15 +245,12 @@ struct HUDView: View {
         .shadow(color: Color.rpRose.opacity(0.1), radius: 32)
         .shadow(color: .black.opacity(0.5), radius: 12, y: 6)
         .onAppear { startTimer() }
-        .onChange(of: inputFocused) { focused in
-            if focused { timerTask?.cancel() } else { continueTimer() }
-        }
     }
 
     private func actionButton(_ label: String, fg: Color, bg: Color, border: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(fg)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
