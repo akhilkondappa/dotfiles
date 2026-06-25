@@ -76,11 +76,6 @@ class HUDWindowController: NSObject {
             }
         }
 
-        // Hide dock icon once we're key
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            NSApp.setActivationPolicy(.accessory)
-        }
-
         // Slide in
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.3
