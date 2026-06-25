@@ -52,8 +52,7 @@ export FZF_ALT_C_OPTS="--preview 'eza --icons=always --tree --color=always {} | 
 # fzf preview for tmux
 export FZF_TMUX_OPTS=" -p90%,70% "
 
-# unbind ctrl g in terminal
-bindkey -r "^G"
+# fzf git keybinds use Ctrl+G as prefix (^g^f files, ^g^b branches, etc.)
 
 # -------------------------------
 # Initializers and sources
