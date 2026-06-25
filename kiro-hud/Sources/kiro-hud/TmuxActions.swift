@@ -14,28 +14,18 @@ enum TmuxActions {
 
     @discardableResult
     private static func run(_ name: String, args: [String]) -> Bool {
-        guard let path = resolvePath(name) else {
-            fputs("kiro-hud: command not found: \(name)\n", stderr)
-            return false
-        }
+        guard let path = resolvePath(name) else { return false }
         let p = Process()
         p.executableURL = URL(fileURLWithPath: path)
         p.arguments = args
         p.standardOutput = FileHandle.nullDevice
-        p.standardError = FileHandle.standardError
-        do {
-            try p.run()
-            p.waitUntilExit()
-            return p.terminationStatus == 0
-        } catch {
-            fputs("kiro-hud: failed to run \(path): \(error)\n", stderr)
-            return false
-        }
+        p.standardError = FileHandle.nullDevice
+        do { try p.run(); p.waitUntilExit(); return p.terminationStatus == 0 }
+        catch { return false }
     }
 
     private static func resolvePath(_ name: String) -> String? {
-        let searchPaths = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"]
-        for dir in searchPaths {
+        for dir in ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"] {
             let full = "\(dir)/\(name)"
             if FileManager.default.isExecutableFile(atPath: full) { return full }
         }
