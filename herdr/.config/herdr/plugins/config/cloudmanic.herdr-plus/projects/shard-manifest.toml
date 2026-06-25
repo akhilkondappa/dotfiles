@@ -1,0 +1,10 @@
+name = "shard-manifest"
+description = "Shard manifest repo"
+working_dir = "~/Repo/shard-manifest"
+
+[[tabs]]
+name = "1"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"

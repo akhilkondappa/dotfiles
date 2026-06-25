@@ -5,7 +5,7 @@
 All configs live in `~/sidekicks/dotfiles/` and are symlinked to `~` via GNU Stow.
 
 ```bash
-cd ~/sidekicks/dotfiles && stow -t ~ ghostty tmux nvim zsh starship atuin wezterm sesh scripts dock
+cd ~/sidekicks/dotfiles && stow -t ~ ghostty tmux nvim zsh starship atuin wezterm sesh scripts dock herdr
 ```
 
 | Package | Symlinks to |
@@ -20,6 +20,7 @@ cd ~/sidekicks/dotfiles && stow -t ~ ghostty tmux nvim zsh starship atuin wezter
 | wezterm | `~/.config/wezterm` |
 | scripts | `~/scripts` |
 | dock | `~/.config/dock` |
+| herdr | `~/.config/herdr` |
 
 ---
 

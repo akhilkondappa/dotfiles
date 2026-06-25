@@ -1,0 +1,13 @@
+name = "dev"
+description = "Main development workspace"
+working_dir = "~/Repo/dev"
+
+[[tabs]]
+name = "1"
+
+[[tabs]]
+name = "2"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"
